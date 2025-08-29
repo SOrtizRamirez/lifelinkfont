@@ -1,6 +1,6 @@
 // public/services/patientsApi.js
 
-const API_BASE = `http://${location.hostname}:3000`;
+const API_BASE = `https://lifelinkback.vercel.app`;
 
 // public/services/patientsApi.js
 

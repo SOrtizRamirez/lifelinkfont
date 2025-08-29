@@ -1,4 +1,4 @@
-const API_BASE = `http://${location.hostname}:3000/emergency-contacts`;
+const API_BASE = `https://lifelinkback.vercel.app`;
 
 export async function createContact(payload) {
     const res = await fetch(`${API_BASE}/`, {
