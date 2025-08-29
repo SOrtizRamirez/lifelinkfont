@@ -2,7 +2,7 @@
 
 const API_BASE = `https://lifelinkback.vercel.app`;
 
-// public/services/patientsApi.js
+
 
 export async function createPatient(payload) {
     const res = await fetch(`${API_BASE}/patients/register`, {

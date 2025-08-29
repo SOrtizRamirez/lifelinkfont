@@ -49,8 +49,8 @@
   } from './services/contactApi.js';
 
   const API = 'https://lifelinkback.vercel.app';
-  //const token = localStorage.getItem('token');
-  //if (!token) location.href = 'index.html';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'index.html';
 
   let patientId = null;
   let editingId = null; // Para saber si estamos editando
