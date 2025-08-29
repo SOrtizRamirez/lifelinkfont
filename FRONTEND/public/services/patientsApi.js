@@ -1,6 +1,6 @@
 // public/services/patientsApi.js
 
-const API_BASE = `https://lifelinkback.vercel.app`;
+const API_BASE = `http://localhost:3000`;
 
 
 
@@ -19,9 +19,9 @@ export async function createPatient(payload) {
 
 // ------- READ (lista con filtros/paginación) -------
 export async function listPatients({
-                                       name, last_name, identity_document, gender, blood_type, email, qr_identifier,
-                                       limit = 10, offset = 0
-                                   } = {}) {
+        name, last_name, identity_document, gender, blood_type, email, qr_identifier,
+        limit = 10, offset = 0
+    } = {}) {
     const params = new URLSearchParams();
     if (name) params.set('name', name);
     if (last_name) params.set('last_name', last_name);

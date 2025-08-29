@@ -1,6 +1,6 @@
 import { createPatient, deletePatient, updatePatient } from './services/patientsApi.js';
 
-const API = 'https://lifelinkback.vercel.app';
+const API = 'https://lifelinkback.onrender.com';
 const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
 const token = localStorage.getItem('token');
 
