@@ -1,0 +1,76 @@
+<!doctype html><html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Información básica del QR</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Información básica (QR)</h2>
+    <div id="qr-data">Cargando...</div>
+    <form id="docLogin">
+        <input id="email" type="email" placeholder="Email" required>
+        <input id="dpass" type="password" placeholder="Contraseña" required>
+        <button>Iniciar sesión</button>
+    </form>
+    <div id="doctor-view"></div>
+</div>
+</body>
+
+<script type="module">
+    const API = `http://${location.hostname}:3000`;
+    const params = new URLSearchParams(location.search);
+    const qrId = params.get('id');
+
+    const out = document.getElementById('qr-data');
+    if (!qrId) out.textContent = 'QR inválido';
+    else {
+        const r = await fetch(`${API}/public/qr/${encodeURIComponent(qrId)}`);
+        const j = await r.json();
+        out.innerHTML = r.ok ? `
+      <p><b>Tipo de sangre:</b> ${j.data.blood_type || '-'}</p>
+      <p><b>Alergias:</b> ${j.data.allergies || '-'}</p>
+      <p><b>Enfermedades:</b> ${j.data.medical_conditions || '-'}</p>
+      <p><b>Medicamentos:</b> ${j.data.current_medications || '-'}</p>
+    ` : (j.message || 'No encontrado');
+    }
+
+    document.getElementById('docLogin').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('dpass').value;
+
+        const r = await fetch(`${API}/auth/doctor/login`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email, password })
+        });
+        const j = await r.json();
+        if (!r.ok) return alert(j.message || 'Error de login doctor');
+
+        const rr = await fetch(`${API}/doctor/qr/${encodeURIComponent(qrId)}`, {
+            headers: { Authorization: `Bearer ${j.token}` }
+        });
+        const xx = await rr.json();
+        if (!rr.ok) return alert(xx.message || 'No autorizado');
+
+        const p = xx.data;
+        const contacts = Array.isArray(p.emergency_contacts) && p.emergency_contacts.length
+            ? p.emergency_contacts.map(c=>`<li><b>${c.fullname}</b> (${c.relation||'-'}) — ${c.phone||'-'} — ${c.email||'-'}</li>`).join('')
+            : '<li>Sin contactos</li>';
+
+        document.getElementById('doctor-view').innerHTML = `
+      <h3>Vista médica</h3>
+      <p><b>Cédula:</b> ${p.identity_document}</p>
+      <p><b>Nombre:</b> ${p.name} ${p.last_name}</p>
+      <p><b>Tipo de sangre:</b> ${p.blood_type || '-'}</p>
+      <p><b>Alergias:</b> ${p.allergies || '-'}</p>
+      <p><b>Enfermedades:</b> ${p.medical_conditions || '-'}</p>
+      <p><b>Medicamentos:</b> ${p.current_medications || '-'}</p>
+      <h4>Contactos de emergencia</h4>
+      <ul>${contacts}</ul>
+    `;
+    });
+</script>
+</html>
+

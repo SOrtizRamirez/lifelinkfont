@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <title>Mis datos</title>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <span class="brand">LifeLink</span>
+    <h2>Mi información</h2>
+  </div>
+  <div class="card page">
+    <h2>Mis datos</h2>
+    <div id="me">Cargando...</div>
+    <div id="emergency-section" style="margin-top:20px;">
+      <h2>Contactos de Emergencia</h2>
+      <button id="show-add-form">Agregar Contacto</button>
+      <div id="add-form" style="display:none; margin-top:10px;">
+        <input type="text" id="ec-fullname" placeholder="Nombre Completo" required>
+        <input type="text" id="ec-relation" placeholder="Relación" required>
+        <input type="text" id="ec-phone" placeholder="Teléfono">
+        <input type="email" id="ec-email" placeholder="Correo">
+        <button id="save-contact">Guardar</button>
+        <button id="cancel-add">Cancelar</button>
+      </div>
+      <div id="emergency-list"></div>
+    </div>
+    <div id="qr-block" style="margin-top:20px;">
+      <button id="rotate">Descargar QR</button>
+      <button id="logout">Salir</button>
+      <div id="qr"></div>
+      <div id="qr-link" style="margin: 10px 0;"></div>
+    </div>
+  </div>
+</div>
+</body>
+<script type="module">
+  import {
+    createContact,
+    listContacts,
+    deleteContact,
+    updateContact
+  } from './services/contactApi.js';
+
+  const API = `http://${location.hostname}:3000`;
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'index.html';
+
+  let patientId = null;
+  let editingId = null; // Para saber si estamos editando
+  let qrUrl = '';
+
+  async function loadMe() {
+    const res = await fetch(`${API}/patients/me`, { headers:{ Authorization:'Bearer '+token }});
+    const { data } = await res.json();
+    patientId = data.id;
+
+    qrUrl = `${location.origin}/qr.html?id=${encodeURIComponent(data.qr_identifier)}`;
+    document.getElementById('me').innerHTML = `
+      <p><b>Nombre:</b> ${data.name || ''} ${data.last_name || ''}</p>
+      <p><b>Numero de Documento:</b> ${data.identity_document}</p>
+      <p><b>Sangre:</b> ${data.blood_type || '-'}</p>
+      <p><b>Alergias:</b> ${data.allergies || '-'}</p>
+      <p><b>Enfermedades:</b> ${data.medical_conditions || '-'}</p>
+      <p><b>Medicamentos:</b> ${data.current_medications || '-'}</p>
+    `;
+    document.getElementById('qr-link').innerHTML = `
+      <p><b>Enlace de tu QR:</b> <a href="${qrUrl}" target="_blank">${qrUrl}</a></p>
+    `;
+  }
+
+  async function loadContacts() {
+    const list = document.getElementById('emergency-list');
+    list.innerHTML = '<p>Cargando...</p>';
+    try {
+      const res = await listContacts({ id: patientId, limit: 100 });
+      if (!res.data || res.data.length === 0) {
+        list.innerHTML = '<p>No hay contactos registrados.</p>';
+        return;
+      }
+      list.innerHTML = '';
+      res.data.forEach(contact => {
+        // Si estamos editando este contacto, mostramos el formulario de edición en línea
+        if (editingId === contact.contact_id) {
+          const div = document.createElement('div');
+          div.className = 'emergency-contact';
+          div.style.marginBottom = '16px';
+          div.innerHTML = `
+            <input type="text" id="edit-fullname" value="${contact.fullname}" placeholder="Nombre Completo" required>
+            <input type="text" id="edit-relation" value="${contact.relation || ''}" placeholder="Relación" required>
+            <input type="text" id="edit-phone" value="${contact.phone || ''}" placeholder="Teléfono">
+            <input type="email" id="edit-email" value="${contact.email || ''}" placeholder="Correo">
+            <button class="save-edit" data-id="${contact.contact_id}">Guardar</button>
+            <button class="cancel-edit">Cancelar</button>
+          `;
+          list.appendChild(div);
+
+          div.querySelector('.save-edit').onclick = async () => {
+            const fullname = div.querySelector('#edit-fullname').value.trim();
+            const relation = div.querySelector('#edit-relation').value.trim();
+            const phone = div.querySelector('#edit-phone').value.trim();
+            const email = div.querySelector('#edit-email').value.trim();
+            if (!fullname || !relation) {
+              alert('Nombre completo y relación son obligatorios');
+              return;
+            }
+            try {
+              await updateContact(contact.contact_id, { fullname, relation, phone, email });
+              editingId = null;
+              loadContacts();
+            } catch (err) {
+              alert('Error al actualizar: ' + err.message);
+            }
+          };
+          div.querySelector('.cancel-edit').onclick = () => {
+            editingId = null;
+            loadContacts();
+          };
+        } else {
+          // Vista normal, vertical
+          const div = document.createElement('div');
+          div.className = 'emergency-contact';
+          div.style.marginBottom = '16px';
+          div.innerHTML = `
+            <p><b>Nombre:</b> ${contact.fullname}</p>
+            <p><b>Relación:</b> ${contact.relation || '-'}</p>
+            <p><b>Teléfono:</b> ${contact.phone || '-'}</p>
+            <p><b>Correo:</b> ${contact.email || '-'}</p>
+            <button class="edit-contact" data-id="${contact.contact_id}">Editar</button>
+            <button class="delete-contact" data-id="${contact.contact_id}">Eliminar</button>
+          `;
+          list.appendChild(div);
+
+          // Botón editar
+          div.querySelector('.edit-contact').onclick = () => {
+            editingId = contact.contact_id;
+            loadContacts();
+          };
+          // Botón eliminar
+          div.querySelector('.delete-contact').onclick = async () => {
+            if (confirm('¿Eliminar este contacto?')) {
+              await deleteContact(contact.contact_id);
+              loadContacts();
+            }
+          };
+        }
+      });
+    } catch (err) {
+      list.innerHTML = `<p>Error al cargar contactos</p>`;
+    }
+  }
+
+  // Mostrar formulario de agregar
+  document.getElementById('show-add-form').onclick = () => {
+    document.getElementById('add-form').style.display = 'block';
+    document.getElementById('show-add-form').style.display = 'none';
+  };
+  // Cancelar agregar
+  document.getElementById('cancel-add').onclick = () => {
+    document.getElementById('add-form').style.display = 'none';
+    document.getElementById('show-add-form').style.display = 'inline-block';
+    document.getElementById('ec-fullname').value = '';
+    document.getElementById('ec-relation').value = '';
+    document.getElementById('ec-phone').value = '';
+    document.getElementById('ec-email').value = '';
+  };
+  // Guardar contacto
+  document.getElementById('save-contact').onclick = async () => {
+    const fullname = document.getElementById('ec-fullname').value.trim();
+    const relation = document.getElementById('ec-relation').value.trim();
+    const phone = document.getElementById('ec-phone').value.trim();
+    const email = document.getElementById('ec-email').value.trim();
+    if (!fullname || !relation) {
+      alert('Nombre completo y relación son obligatorios');
+      return;
+    }
+    try {
+      await createContact({ id: patientId, fullname, relation, phone, email });
+      document.getElementById('add-form').style.display = 'none';
+      document.getElementById('show-add-form').style.display = 'inline-block';
+      document.getElementById('ec-fullname').value = '';
+      document.getElementById('ec-relation').value = '';
+      document.getElementById('ec-phone').value = '';
+      document.getElementById('ec-email').value = '';
+      loadContacts();
+    } catch (err) {
+      alert('Error al guardar: ' + err.message);
+    }
+  };
+
+  // QR y logout
+  function renderQR() {
+    const qrDiv = document.getElementById('qr');
+    qrDiv.innerHTML = '';
+    if (qrUrl && window.QRCode) {
+      new QRCode(qrDiv, qrUrl);
+    }
+  }
+
+  document.getElementById('rotate').onclick = async () => {
+    const res = await fetch(`${API}/patients/me/qr`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const out = await res.json();
+    if (!res.ok) { alert(out.message || 'No se pudo rotar'); return; }
+
+    const newQr = out.data.qr_identifier;
+    qrUrl = `${location.origin}/qr.html?id=${encodeURIComponent(newQr)}`;
+
+    const tmp = document.createElement('div');
+    tmp.style.position = 'fixed';
+    tmp.style.left = '-9999px';
+    document.body.appendChild(tmp);
+
+    if (window.QRCode) {
+      const qr = new QRCode(tmp, { text: qrUrl, width: 512, height: 512 });
+      setTimeout(() => {
+        const canvas = tmp.querySelector('canvas');
+        if (canvas) {
+          const dataURL = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = dataURL;
+          a.download = `LifeLink_QR_${newQr}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+        tmp.remove();
+        loadMe();
+        renderQR();
+      }, 50);
+    } else {
+      alert('No se encontró la librería QRCode');
+      loadMe();
+      renderQR();
+    }
+  };
+
+  document.getElementById('logout').onclick = () => {
+    localStorage.removeItem('token');
+    location.href = 'index.html';
+  };
+
+  // Inicialización
+  await loadMe();
+  await loadContacts();
+  renderQR();
+</script>
+</html>
