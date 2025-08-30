@@ -1,8 +1,5 @@
 // public/services/patientsApi.js
-
-const API_BASE = `https://lifelinkback.onrender.com`;
-
-
+export const API_BASE = window.API_BASE || `http://${location.hostname}:3000`;
 
 export async function createPatient(payload) {
     const res = await fetch(`${API_BASE}/patients/register`, {
