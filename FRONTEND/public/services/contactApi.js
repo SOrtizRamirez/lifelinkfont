@@ -1,4 +1,4 @@
-const API_BASE = `lifelinkback-nm1ww2exj-sharon-ortizs-projects.vercel.app`;
+const API_BASE = `https://lifelinkback.onrender.com`;
 
 export async function createContact(payload) {
     const res = await fetch(`${API_BASE}/`, {
