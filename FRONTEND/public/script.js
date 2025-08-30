@@ -16,19 +16,35 @@ if (loginForm) {
         e.preventDefault();
         const identity_document = document.getElementById('doc').value.trim();
         const password = document.getElementById('pass').value;
+        try {
+            // 1) LOGIN: POST con body para obtener token
+            const res = await fetch(`${API}/auth/patient/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ identity_document, password }),
+            });
 
-        const res = await fetch(`${API}/patients/me`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identity_document, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) return alert(data.message || 'Error de login');
+            const text = await res.text(); // lectura segura por si devuelve HTML en error
+            let json = {};
+            try { json = text ? JSON.parse(text) : {}; }
+            catch { throw new Error(`Login no devolvió JSON (${res.status}): ${text.slice(0, 200)}`); }
 
-        localStorage.setItem('token', data.token);
-        location.href = './info.html';
+            if (!res.ok) throw new Error(json.message || `Login falló (${res.status})`);
+
+            const token = json.token || json.accessToken;
+            if (!token) throw new Error('El backend no devolvió token');
+
+            // 2) Guardar token y redirigir a página protegida
+            localStorage.setItem('token', token);
+            location.href = './info.html';
+
+        } catch (err) {
+            console.error(err);
+            alert(err.message || 'Error de login');
+        }
     });
 }
+
 
 
 const signupForm = document.getElementById('signupForm');
@@ -41,22 +57,22 @@ async function onSubmitCreate(e) {
 
     const payload = {
         identity_document: val('doc'),
-        password:          val('pass'),
-        name:              val('name'),
-        last_name:         val('last_name'),
-        blood_type:        val('blood_type'),
-        allergies:         val('allergies'),
-        medical_conditions:val('medical_conditions'),
-        current_medications:val('current_medications'),
+        password: val('pass'),
+        name: val('name'),
+        last_name: val('last_name'),
+        blood_type: val('blood_type'),
+        allergies: val('allergies'),
+        medical_conditions: val('medical_conditions'),
+        current_medications: val('current_medications'),
     };
 
     const missing = Object.entries({
         identity_document: payload.identity_document,
-        password:          payload.password,
-        name:              payload.name,
-        last_name:         payload.last_name,
-        blood_type:        payload.blood_type,
-    }).filter(([,v]) => !v).map(([k]) => k);
+        password: payload.password,
+        name: payload.name,
+        last_name: payload.last_name,
+        blood_type: payload.blood_type,
+    }).filter(([, v]) => !v).map(([k]) => k);
     if (missing.length) {
         alert('Faltan: ' + missing.join(', '));
         return;
