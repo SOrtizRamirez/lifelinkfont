@@ -16,26 +16,55 @@ if (loginForm) {
         e.preventDefault();
         const identity_document = document.getElementById('doc').value.trim();
         const password = document.getElementById('pass').value;
+
         try {
-            // 1) LOGIN: POST con body para obtener token
             const res = await fetch(`${API}/auth/patient/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                // Si sospechas cookie httpOnly, descomenta la línea de abajo y configura CORS en el back con credentials:true
+                // credentials: 'include',
                 body: JSON.stringify({ identity_document, password }),
             });
 
-            const text = await res.text(); // lectura segura por si devuelve HTML en error
+            const raw = await res.text();
+            console.log('LOGIN raw response:', raw);
             let json = {};
-            try { json = text ? JSON.parse(text) : {}; }
-            catch { throw new Error(`Login no devolvió JSON (${res.status}): ${text.slice(0, 200)}`); }
+            try { json = raw ? JSON.parse(raw) : {}; } catch (_) { }
 
-            if (!res.ok) throw new Error(json.message || `Login falló (${res.status})`);
+            if (!res.ok) {
+                throw new Error(json?.message || `Login falló (${res.status})`);
+            }
 
-            const token = json.token || json.accessToken;
-            if (!token) throw new Error('El backend no devolvió token');
+            // 1) token en body con distintos nombres/ubicaciones
+            let token =
+                json.token ||
+                json.accessToken ||
+                json.data?.token ||
+                json.data?.accessToken;
 
-            // 2) Guardar token y redirigir a página protegida
-            localStorage.setItem('token', token);
+            // 2) o token en headers (Authorization / x-auth-token)
+            if (!token) {
+                const authHeader = res.headers.get('authorization') || res.headers.get('Authorization');
+                const xAuth = res.headers.get('x-auth-token') || res.headers.get('X-Auth-Token');
+                if (authHeader?.toLowerCase().startsWith('bearer ')) {
+                    token = authHeader.slice('bearer '.length);
+                } else if (xAuth) {
+                    token = xAuth;
+                }
+            }
+
+            // 3) o sesión por cookie httpOnly (no hay token en JS)
+            const usingCookieSession = !token && (res.headers.get('set-cookie') || json?.status === 'success');
+
+            if (!token && !usingCookieSession) {
+                throw new Error('El backend respondió éxito pero no incluyó token (ni cookie). Revisa la forma del payload.');
+            }
+
+            if (token) {
+                localStorage.setItem('token', token);
+            }
+
+            // Si usas cookie httpOnly, para las siguientes llamadas usa credentials:'include' y NO Authorization
             location.href = './info.html';
 
         } catch (err) {
