@@ -1,5 +1,5 @@
 // public/services/patientsApi.js
-export const API_BASE = window.API_BASE || `http://${location.hostname}:3000`;
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${location.hostname}:3000`;
 
 export async function createPatient(payload) {
     const res = await fetch(`${API_BASE}/patients/register`, {

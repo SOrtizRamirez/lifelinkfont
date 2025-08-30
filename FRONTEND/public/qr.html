@@ -1,25 +1,29 @@
-<!doctype html><html>
+<!doctype html>
+<html>
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Información básica del QR</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Información básica del QR</title>
     <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
-<div class="container">
-    <h2>Información básica (QR)</h2>
-    <div id="qr-data">Cargando...</div>
-    <form id="docLogin">
-        <input id="email" type="email" placeholder="Email" required>
-        <input id="dpass" type="password" placeholder="Contraseña" required>
-        <button>Iniciar sesión</button>
-    </form>
-    <div id="doctor-view"></div>
-</div>
+    <div class="container">
+        <h2>Información básica (QR)</h2>
+        <div id="qr-data">Cargando...</div>
+        <form id="docLogin">
+            <input id="email" type="email" placeholder="Email" required>
+            <input id="dpass" type="password" placeholder="Contraseña" required>
+            <button>Iniciar sesión</button>
+        </form>
+        <div id="doctor-view"></div>
+    </div>
 </body>
 
 <script type="module">
-    const API = 'https://lifelinkback.onrender.com';
+    const API = import.meta.env.VITE_API_BASE_URL;
+
     const params = new URLSearchParams(location.search);
     const qrId = params.get('id');
 
@@ -36,13 +40,13 @@
     ` : (j.message || 'No encontrado');
     }
 
-    document.getElementById('docLogin').addEventListener('submit', async (e)=>{
+    document.getElementById('docLogin').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('dpass').value;
 
         const r = await fetch(`${API}/auth/doctor/login`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         const j = await r.json();
@@ -56,7 +60,7 @@
 
         const p = xx.data;
         const contacts = Array.isArray(p.emergency_contacts) && p.emergency_contacts.length
-            ? p.emergency_contacts.map(c=>`<li><b>${c.fullname}</b> (${c.relation||'-'}) — ${c.phone||'-'} — ${c.email||'-'}</li>`).join('')
+            ? p.emergency_contacts.map(c => `<li><b>${c.fullname}</b> (${c.relation || '-'}) — ${c.phone || '-'} — ${c.email || '-'}</li>`).join('')
             : '<li>Sin contactos</li>';
 
         document.getElementById('doctor-view').innerHTML = `
@@ -72,5 +76,5 @@
     `;
     });
 </script>
-</html>
 
+</html>

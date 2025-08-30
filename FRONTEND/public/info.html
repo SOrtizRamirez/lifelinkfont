@@ -1,44 +1,45 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="./style.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <title>Mis datos</title>
 </head>
+
 <body>
-<div class="container">
-  <div class="header">
-    <span class="brand">LifeLink</span>
-    <h2>Mi información</h2>
-  </div>
-  <div class="card page">
-    <h2>Mis datos</h2>
-    <div id="me">Cargando...</div>
-    <div id="emergency-section" style="margin-top:20px;">
-      <h2>Contactos de Emergencia</h2>
-      <button id="show-add-form">Agregar Contacto</button>
-      <div id="add-form" style="display:none; margin-top:10px;">
-        <input type="text" id="ec-fullname" placeholder="Nombre Completo" required>
-        <input type="text" id="ec-relation" placeholder="Relación" required>
-        <input type="text" id="ec-phone" placeholder="Teléfono">
-        <input type="email" id="ec-email" placeholder="Correo">
-        <button id="save-contact">Guardar</button>
-        <button id="cancel-add">Cancelar</button>
+  <div class="container">
+    <div class="header">
+      <span class="brand">LifeLink</span>
+      <h2>Mi información</h2>
+    </div>
+    <div class="card page">
+      <h2>Mis datos</h2>
+      <div id="me">Cargando...</div>
+      <div id="emergency-section" style="margin-top:20px;">
+        <h2>Contactos de Emergencia</h2>
+        <button id="show-add-form">Agregar Contacto</button>
+        <div id="add-form" style="display:none; margin-top:10px;">
+          <input type="text" id="ec-fullname" placeholder="Nombre Completo" required>
+          <input type="text" id="ec-relation" placeholder="Relación" required>
+          <input type="text" id="ec-phone" placeholder="Teléfono">
+          <input type="email" id="ec-email" placeholder="Correo">
+          <button id="save-contact">Guardar</button>
+          <button id="cancel-add">Cancelar</button>
+        </div>
+        <div id="emergency-list"></div>
       </div>
-      <div id="emergency-list"></div>
-    </div>
-    <div id="qr-block" style="margin-top:20px;">
-      <button id="rotate">Descargar QR</button>
-      <button id="logout">Salir</button>
-      <div id="qr"></div>
-      <div id="qr-link" style="margin: 10px 0;"></div>
+      <div id="qr-block" style="margin-top:20px;">
+        <button id="rotate">Descargar QR</button>
+        <button id="logout">Salir</button>
+        <div id="qr"></div>
+        <div id="qr-link" style="margin: 10px 0;"></div>
+      </div>
     </div>
   </div>
-</div>
 </body>
 <script type="module">
   import {
@@ -48,7 +49,7 @@
     updateContact
   } from './services/contactApi.js';
 
-  const API = 'https://lifelinkback.onrender.com';
+  const API = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem('token');
   if (!token) location.href = 'index.html';
 
@@ -57,7 +58,7 @@
   let qrUrl = '';
 
   async function loadMe() {
-    const res = await fetch(`${API}/patients/me`, { headers:{ Authorization:'Bearer '+token }});
+    const res = await fetch(`${API}/patients/me`, { headers: { Authorization: 'Bearer ' + token } });
     const { data } = await res.json();
     patientId = data.id;
 
@@ -253,4 +254,5 @@
   await loadContacts();
   renderQR();
 </script>
+
 </html>
