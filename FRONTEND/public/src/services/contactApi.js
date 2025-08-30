@@ -1,17 +1,13 @@
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${location.hostname}:3000`;
 
-
-export async function createContact(payload) {
-    const res = await fetch(`${API_BASE}/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Error al crear contacto de emergencia: ${res.status} ${txt}`);
-    }
-    return res.json();
+export async function createContact(payload, token) {
+  const res = await fetch(url('emergency-contacts'), {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', Accept:'application/json', Authorization:`Bearer ${token}` },
+    body: JSON.stringify(payload) // { fullname, relation, phone, email }
+  });
+  const json = await res.json(); if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
+  return json;
 }
 
 export async function listContacts({
