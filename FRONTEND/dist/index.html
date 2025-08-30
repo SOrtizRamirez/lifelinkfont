@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LifeLink — Login Paciente</title>
+  <script type="module" crossorigin src="/assets/script-BAeR12OA.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/script-D46l3AUI.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="brand">LifeLink</span>
+      <h2>Login Paciente</h2>
+    </div>
+    <div class="card page">
+      <h2>Login Paciente</h2>
+
+      <form id="loginForm" autocomplete="on">
+        <input id="doc" name="doc" inputmode="numeric" placeholder="Cédula" required />
+        <input id="pass" name="pass" type="password" placeholder="Contraseña" required />
+        <button type="submit">Ingresar</button>
+      </form>
+
+      <p style="margin-top:12px">
+        ¿No tienes cuenta?
+        <a href="./signup.html" id="link-signup">Regístrate</a>
+      </p>
+    </div>
+    <div class="footer">© LifeLink</div>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+
+</html>

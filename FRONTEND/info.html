@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="../FRONTEND/public/style.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <title>Mis datos</title>
 </head>
@@ -41,13 +41,14 @@
     </div>
   </div>
 </body>
+<script type="module" src="../FRONTEND/public/src/script.js"></script>
 <script type="module">
   import {
     createContact,
     listContacts,
     deleteContact,
     updateContact
-  } from './services/contactApi.js';
+  } from '../FRONTEND/public/src/services/contactApi.js';
 
   const API = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem('token');

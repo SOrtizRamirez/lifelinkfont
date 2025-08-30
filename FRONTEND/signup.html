@@ -1,38 +1,40 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Registro de paciente</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="../FRONTEND/public/style.css">
 </head>
+
 <body>
-<div class="container">
-  <div class="header">
-    <span class="brand">LifeLink</span>
-    <h2>Registro de paciente</h2>
-  </div>
-  <div class="card page">
-<h2>Registro Paciente</h2>
+  <div class="container">
+    <div class="header">
+      <span class="brand">LifeLink</span>
+      <h2>Registro de paciente</h2>
+    </div>
+    <div class="card page">
+      <h2>Registro Paciente</h2>
 
-<form id="signupForm">
-    <input id="doc" placeholder="Cédula" required />
-    <input id="pass" type="password" placeholder="Contraseña" required />
-    <input id="name" placeholder="Nombre" required />
-    <input id="last_name" placeholder="Apellido" required />
-    <input id="blood_type" placeholder="Tipo de sangre" required />
-    <textarea id="allergies" placeholder="Alergias"></textarea>
-    <textarea id="medical_conditions" placeholder="Enfermedades base"></textarea>
-    <textarea id="current_medications" placeholder="Medicamentos"></textarea>
-    <button>Crear cuenta</button>
-</form>
+      <form id="signupForm">
+        <input id="doc" placeholder="Cédula" required />
+        <input id="pass" type="password" placeholder="Contraseña" required />
+        <input id="name" placeholder="Nombre" required />
+        <input id="last_name" placeholder="Apellido" required />
+        <input id="blood_type" placeholder="Tipo de sangre" required />
+        <textarea id="allergies" placeholder="Alergias"></textarea>
+        <textarea id="medical_conditions" placeholder="Enfermedades base"></textarea>
+        <textarea id="current_medications" placeholder="Medicamentos"></textarea>
+        <button>Crear cuenta</button>
+      </form>
 
-<div id="qr-result"></div>
+      <div id="qr-result"></div>
+    </div>
+    <div class="footer">© LifeLink</div>
   </div>
-  <div class="footer">© LifeLink</div>
-</div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script type="module" src="./script.js"></script>
-</html>
+<script type="module" src="../FRONTEND/public/src/script.js"></script>
 
+</html>
