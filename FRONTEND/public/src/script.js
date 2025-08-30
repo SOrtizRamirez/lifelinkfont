@@ -110,13 +110,13 @@ async function onSubmitCreate(e) {
     try {
         const { data } = await createPatient(payload);
         alert(`Cuenta creada. Tu QR es: ${data.qr_identifier}`);
-
         const url = `${location.origin}/qr.html?id=${encodeURIComponent(data.qr_identifier)}`;
         const box = document.getElementById('qr-result');
         if (box && window.QRCode) {
             box.innerHTML = `<p>Tu QR único:</p><div id="qr"></div><p>${url}</p>`;
             new QRCode(document.getElementById('qr'), url);
         }
+        location.href = '/index.html'
     } catch (err) {
         alert(err.message);
         console.error(err);
